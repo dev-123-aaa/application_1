@@ -1,7 +1,11 @@
+"use client";
+
 import { VideoList } from "@/components/dashboard/VideoList";
-import { mockVideos } from "@/lib/mock-data";
+import { useVideos } from "@/lib/contexts/VideoContext";
 
 export default function DashboardPage() {
+  const { videos } = useVideos();
+
   return (
     <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
@@ -9,11 +13,11 @@ export default function DashboardPage() {
           Video Projects
         </h2>
         <p className="mt-1 text-sm text-gray-500">
-          {mockVideos.length} projects in your production pipeline
+          {videos.length} project{videos.length !== 1 ? "s" : ""} in your production pipeline
         </p>
       </div>
 
-      <VideoList videos={mockVideos} />
+      <VideoList videos={videos} />
     </main>
   );
 }

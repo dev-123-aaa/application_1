@@ -1,0 +1,137 @@
+"use client";
+
+import { useState } from "react";
+import { Copy, Check, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { VideoStatus, hasScriptReady } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+interface ScriptSectionProps {
+  script?: string;
+  status: VideoStatus;
+  onCopySuccess: () => void;
+}
+
+export function ScriptSection({
+  script,
+  status,
+  onCopySuccess,
+}: ScriptSectionProps) {
+  const [copied, setCopied] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isReady = hasScriptReady(status);
+  const hasScript = script && script.length > 0;
+
+  const handleCopy = async () => {
+    if (!script) return;
+
+    try {
+      await navigator.clipboard.writeText(script);
+      setCopied(true);
+      onCopySuccess();
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy script:", err);
+    }
+  };
+
+  // Check if script is long enough to need collapsing
+  const isLongScript = hasScript && script.length > 1000;
+  const displayScript =
+    isLongScript && !isExpanded ? script.slice(0, 1000) + "..." : script;
+
+  return (
+    <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/50 p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h3 className="text-xs font-light uppercase tracking-widest text-gray-400">
+            Script
+          </h3>
+          {isReady && hasScript ? (
+            <span className="inline-flex items-center rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-xs text-emerald-400">
+              Ready
+            </span>
+          ) : (
+            <span className="inline-flex items-center rounded-full bg-zinc-800 border border-zinc-700 px-2 py-0.5 text-xs text-gray-500">
+              {status === "Failed" ? "Failed" : "Pending"}
+            </span>
+          )}
+        </div>
+
+        {hasScript && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCopy}
+            className="gap-2"
+          >
+            {copied ? (
+              <>
+                <Check className="h-4 w-4 text-emerald-400" />
+                <span className="text-emerald-400">Copied</span>
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4" />
+                <span className="hidden sm:inline">Copy Script</span>
+              </>
+            )}
+          </Button>
+        )}
+      </div>
+
+      {hasScript ? (
+        <div className="space-y-4">
+          <div
+            className={cn(
+              "relative overflow-hidden rounded-md bg-zinc-950/50 p-4",
+              !isExpanded && isLongScript && "max-h-64"
+            )}
+          >
+            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-300">
+              {displayScript}
+            </pre>
+            {!isExpanded && isLongScript && (
+              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-zinc-950/90 to-transparent" />
+            )}
+          </div>
+
+          {isLongScript && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="w-full gap-2"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="h-4 w-4" />
+                  Show Less
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  Show Full Script
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-zinc-800 bg-zinc-950/30 py-12 text-center">
+          <div className="mb-3 rounded-full bg-zinc-800/50 p-3">
+            <FileText className="h-6 w-6 text-gray-500" />
+          </div>
+          <p className="text-sm text-gray-500">
+            {status === "Failed"
+              ? "Script generation failed"
+              : "Script will appear here once generated"}
+          </p>
+          <p className="mt-1 text-xs text-gray-600">
+            Current status: {status}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}

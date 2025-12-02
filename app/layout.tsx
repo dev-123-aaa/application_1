@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { Header } from "@/components/layout/Header";
 import { ParticleBackground } from "@/components/layout/ParticleBackground";
+import { AppProvider } from "@/components/providers/AppProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,8 +32,7 @@ export default function RootLayout({
       >
         <ParticleBackground />
         <div className="relative z-10 flex min-h-screen flex-col">
-          <Header />
-          {children}
+          <AppProvider>{children}</AppProvider>
         </div>
       </body>
     </html>
