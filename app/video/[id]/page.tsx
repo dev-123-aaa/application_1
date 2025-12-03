@@ -1,59 +1,93 @@
+"use client";
+
+import { use, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { mockVideos } from "@/lib/mock-data";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { notFound } from "next/navigation";
+import { VideoHeader } from "@/components/video-detail/VideoHeader";
+import { OverviewCard } from "@/components/video-detail/OverviewCard";
+import { ScriptSection } from "@/components/video-detail/ScriptSection";
+import { ThumbnailGrid } from "@/components/video-detail/ThumbnailGrid";
+import { PipelineStatus } from "@/components/video-detail/PipelineStatus";
+import { Toast } from "@/components/ui/toast";
 
 interface VideoDetailPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function VideoDetailPage({ params }: VideoDetailPageProps) {
-  const video = mockVideos.find((v) => v.project_id === params.id);
+  const { id } = use(params);
+  const video = mockVideos.find((v) => v.project_id === id);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "info";
+  } | null>(null);
 
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+    setToast({ message, type });
+  };
+
+  const hideToast = () => {
+    setToast(null);
+  };
+
+  // Video not found state
   if (!video) {
-    notFound();
-  }
-
-  return (
-    <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8">
+    return (
+      <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-4 -ml-2 gap-2">
+          <Button variant="ghost" size="sm" className="mb-8 -ml-2 gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
           </Button>
         </Link>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-light tracking-wide text-white">
-              {video.title}
-            </h1>
-            <p className="mt-2 text-sm text-gray-500">
-              Project ID: {video.project_id}
-            </p>
-          </div>
-          <StatusBadge status={video.status} />
+        <div className="flex flex-col items-center justify-center rounded-lg border border-zinc-800/50 bg-zinc-900/50 py-16 text-center">
+          <div className="mb-4 text-6xl">🔍</div>
+          <h2 className="mb-2 text-xl font-light text-white">Video Not Found</h2>
+          <p className="mb-6 text-sm text-gray-500">
+            The video you&apos;re looking for doesn&apos;t exist or has been removed.
+          </p>
+          <Link href="/">
+            <Button variant="outline">Return to Dashboard</Button>
+          </Link>
         </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Header with back button, title, and metadata */}
+      <VideoHeader video={video} />
+
+      {/* Content sections */}
+      <div className="space-y-6">
+        {/* Overview Card - Video metadata */}
+        <OverviewCard video={video} />
+
+        {/* Script Section with copy functionality */}
+        <ScriptSection
+          script={video.script}
+          status={video.status}
+          onCopySuccess={() => showToast("Script copied to clipboard")}
+        />
+
+        {/* Thumbnail Suggestions Grid */}
+        <ThumbnailGrid
+          thumbnails={video.thumbnail_suggestions}
+          status={video.status}
+        />
+
+        {/* Pipeline Status Stepper */}
+        <PipelineStatus status={video.status} />
       </div>
 
-      <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/50 p-8">
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="mb-4 h-16 w-16 rounded-full bg-zinc-800/50 flex items-center justify-center">
-            <span className="text-2xl">🎬</span>
-          </div>
-          <h3 className="mb-2 text-lg font-light text-white">
-            Video Details Coming Soon
-          </h3>
-          <p className="max-w-md text-sm text-gray-500">
-            This is a placeholder for the video detail view. Full production
-            pipeline controls, section management, and progress tracking will
-            be added in future updates.
-          </p>
-        </div>
-      </div>
+      {/* Toast notification */}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
+      )}
     </main>
   );
 }
