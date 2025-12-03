@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,11 @@ import { PipelineStatus } from "@/components/video-detail/PipelineStatus";
 import { Toast } from "@/components/ui/toast";
 
 interface VideoDetailPageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export default function VideoDetailPage({ params }: VideoDetailPageProps) {
-  const { id } = use(params);
+  const { id } = params;
   const video = mockVideos.find((v) => v.project_id === id);
   const [toast, setToast] = useState<{
     message: string;
